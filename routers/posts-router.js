@@ -7,13 +7,20 @@ const router = express.Router();
 // Create
 router.post("/", async (req, res) => {
   if (req.body.title && req.body.contents) {
+    // checks for title and content present
     try {
-      const newPost = await db.insert(req.body);
-      console.log(newPost);
-      res.status(201).json(newPost);
+      const newPost = await db.insert(req.body); // async adds post title and content to db
+      if (newPost) {
+        const post = await db.findById(newPost.id); // get all post info from db
+        res.status(200).json(post); // send post info to client
+      } else {
+        res.status(500).json({
+          message: "Error retriving the post"
+        });
+      }
     } catch (error) {
       res.status(500).json({
-        message: "Error adding the hub"
+        message: "Error adding the post"
       });
     }
   } else {
@@ -52,14 +59,17 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const updatedPost = await db.update(req.params.id, req.body);
-    if (updatedPost) {
-      res.status(200).json(updatedPost);
+    if (updatedPost === 1) {
+      console.log("Before post");
+      const post = await db.findById(req.params.id); // get post's info from db
+      console.log("after post");
+      res.status(200).json(post); // send post info to client
     } else {
       res.status(404).json({ error: "The post could not be found" });
     }
   } catch (error) {
     res.status(500).json({
-      message: "Error updating post"
+      error: "Error updating post"
     });
   }
 });
